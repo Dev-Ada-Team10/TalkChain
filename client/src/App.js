@@ -32,6 +32,13 @@ function App() {
 
   // function to convert lesson plan json into presentable data
   const renderData = (data) => {
+
+    // undefined parameter
+    if (data === undefined || data === null) {
+      return <span>No data available</span>;
+    }
+
+    // if data is an array, generate a list of all its contents
     if (_.isArray(data)) {
       return (
         <ul>
@@ -42,6 +49,7 @@ function App() {
       );
     }
 
+    // if data is an object, treat it like a subheading and make a recursive call
     if (_.isObject(data)) {
       return (
         <ul>
@@ -54,6 +62,7 @@ function App() {
       );
     }
 
+    // if data is primitive, return it
     return <span>{data}</span>;
   };
 
