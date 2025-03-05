@@ -1,0 +1,91 @@
+{
+    "lesson_plan": {
+      "Lesson 1: Basic Greetings and Introductions": {
+        "Subtopic 1: Greetings and Polite Expressions": {
+          "vocabulary": [
+            "Hola - Hello",
+            "Buenos días - Good morning",
+            "Buenas tardes - Good afternoon",
+            "Buenas noches - Good evening/night",
+            "Gracias - Thank you",
+            "De nada - You're welcome",
+            "Perdón - Excuse me",
+            "Lo siento - I'm sorry"
+          ],
+          "example_questions": [
+            "How do you say 'Hello' in Spanish?",
+            "What is the difference between 'Buenos días' and 'Buenas noches'?",
+            "How would you greet someone in the evening?",
+            "How do you say 'Thank you' in Spanish?",
+            "How do you respond to 'Gracias'?",
+            "How do you apologize in Spanish?",
+            "What’s the difference between 'Perdón' and 'Lo siento'?",
+            "Role-play: Greet me and ask how I am."
+          ]
+        },
+        "Subtopic 2: Introducing Yourself": {
+          "vocabulary": [
+            "Me llamo... - My name is...",
+            "¿Cómo te llamas? - What’s your name?",
+            "Mucho gusto - Nice to meet you",
+            "¿De dónde eres? - Where are you from?",
+            "Soy de... - I am from...",
+            "¿Cuántos años tienes? - How old are you?",
+            "Tengo ... años - I am ... years old",
+            "Encantado/a - Delighted to meet you"
+          ],
+          "example_questions": [
+            "How do you introduce yourself in Spanish?",
+            "How do you ask someone’s name in Spanish?",
+            "What is the difference between 'Me llamo' and 'Soy'?",
+            "How do you say 'Nice to meet you'?",
+            "How do you ask 'Where are you from?'",
+            "Translate: 'I am from the United States.'",
+            "How do you introduce a friend in Spanish?",
+            "Role-play: Introduce yourself and ask for my name."
+          ]
+        }
+      },
+      "Lesson 2: Numbers and Age": {
+        "Subtopic 1: Numbers 1-100": {
+          "vocabulary": [
+            "Uno - One",
+            "Dos - Two",
+            "Tres - Three",
+            "Diez - Ten",
+            "Veinte - Twenty",
+            "Cincuenta - Fifty",
+            "Cien - One hundred"
+          ],
+          "example_questions": [
+            "Count from 1 to 10 in Spanish.",
+            "How do you say the number 25 in Spanish?",
+            "What is the Spanish word for 50?",
+            "How do you say '100' in Spanish?",
+            "Fill in the blank: 30, 40, ____, 60.",
+            "How would you tell someone your phone number in Spanish?",
+            "Translate: 'I have two brothers and three sisters.'",
+            "Role-play: Ask me for my phone number in Spanish."
+          ]
+        },
+        "Subtopic 2: Asking and Giving Age": {
+          "vocabulary": [
+            "¿Cuántos años tienes? - How old are you?",
+            "Tengo ... años - I am ... years old",
+            "Él/Ella tiene ... años - He/She is ... years old"
+          ],
+          "example_questions": [
+            "How do you ask someone's age in Spanish?",
+            "What’s the difference between 'Cuántos años tienes?' and 'Cuántos años tiene?'",
+            "How do you say 'I am 20 years old' in Spanish?",
+            "Translate: 'My mother is 45 years old.'",
+            "How would you say 'She is 30 years old'?",
+            "How do you ask 'How old is your brother?' in Spanish?",
+            "Fill in the blank: 'Tengo ____ años.'",
+            "Role-play: Ask me about my age and answer in return."
+          ]
+        }
+      }
+    }
+  }
+  
