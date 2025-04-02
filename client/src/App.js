@@ -1,5 +1,65 @@
 import React, { useState, useEffect } from 'react'
 import _ from 'lodash';
+import { useReactMediaRecorder } from 'react-media-recorder';
+import axios from 'axios';
+
+const AudioRecorder = () => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const {
+    status,
+    startRecording,
+    stopRecording,
+    mediaBlobUrl,
+    clearBlobUrl
+  } = useReactMediaRecorder({ audio: true });
+
+  const handleUpload = async () => {
+    if (!mediaBlobUrl) return;
+    
+    setIsUploading(true);
+    setUploadStatus('Uploading...');
+    
+    try {
+      const response = await fetch(mediaBlobUrl);
+      const blob = await response.blob();
+      
+      const formData = new FormData();
+      formData.append('audio', blob, 'recording.webm');
+      
+      const res = await axios.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setUploadStatus('Upload successful!');
+      console.log('Server response:', res.data);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadStatus('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Audio Recorder</h2>
+      <p>Status: {status}</p>
+      
+      <button onClick={startRecording} disabled={status === 'recording'}>Start Recording</button>
+      <button onClick={stopRecording} disabled={status !== 'recording'}>Stop Recording</button>
+      <button onClick={clearBlobUrl} disabled={!mediaBlobUrl}>Clear Recording</button>
+      <button onClick={handleUpload} disabled={!mediaBlobUrl || isUploading}>
+        {isUploading ? 'Uploading...' : 'Upload Recording'}
+      </button>
+      
+      {mediaBlobUrl && <audio src={mediaBlobUrl} controls />}
+      {uploadStatus && <p>{uploadStatus}</p>}
+    </div>
+  );
+};
+
 
 function App() {
 
@@ -138,6 +198,7 @@ function App() {
           <p>{feedback}</p>
         </div>
       )}
+      <AudioRecorder />
     </>
   );
 }

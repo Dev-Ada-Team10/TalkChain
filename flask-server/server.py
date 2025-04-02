@@ -1,6 +1,7 @@
 from flask import Flask, send_file, request, jsonify
 import requests
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)  # Allow requests from React
@@ -9,6 +10,12 @@ CORS(app)  # Allow requests from React
 latest_question = None
 latest_answer_correction = None
 answer = None
+
+# Configure upload folder
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/languages")
 def languages():
@@ -73,6 +80,29 @@ def send_answer():
     latest_answer_correction = request.json  # Expect JSON with question
     return jsonify({'message': 'Question received'})
 
+@app.route('/upload', methods=['POST'])
+def upload_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file provided'}), 400
+    
+    audio_file = request.files['audio']
+    
+    if audio_file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if audio_file:
+        # Save the file
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], audio_file.filename)
+        audio_file.save(filename)
+        
+        # Here you can process the audio file as needed
+        # For example, convert it, transcribe it, etc.
+        
+        return jsonify({
+            'message': 'File uploaded successfully',
+            'filename': filename,
+            'size': os.path.getsize(filename)
+        }), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
