@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import _ from 'lodash';
-import './App.css';
 
 function App() {
 
@@ -157,6 +156,7 @@ function App() {
           <p>{feedback}</p>
         </div>
       )}
+      <AudioRecorder />
     </>
     
   );
