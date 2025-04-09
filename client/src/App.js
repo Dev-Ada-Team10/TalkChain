@@ -1,5 +1,85 @@
 import React, { useState, useEffect } from 'react'
 import _ from 'lodash';
+import { useReactMediaRecorder } from 'react-media-recorder';
+import axios from 'axios';
+
+const AudioRecorder = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const {
+    status,
+    startRecording,
+    stopRecording,
+    mediaBlobUrl,
+    clearBlobUrl
+  } = useReactMediaRecorder({ audio: true });
+
+  const toggleRecording = async () => {
+    if (!isRecording) {
+      setUploadStatus('');
+      setIsRecording(true);
+      startRecording();
+    } else {
+      setIsRecording(false);
+      stopRecording();
+      // Wait a moment for mediaBlobUrl to be set
+      setTimeout(handleUpload, 500); 
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!mediaBlobUrl) return;
+
+    setIsUploading(true);
+    setUploadStatus('Uploading...');
+
+    try {
+      const response = await fetch(mediaBlobUrl);
+      const blob = await response.blob();
+
+      const formData = new FormData();
+      formData.append('audio', blob, 'recording.webm');
+
+      const res = await axios.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setUploadStatus('Upload successful!');
+      clearBlobUrl(); // Clear recorded audio
+      console.log('Server response:', res.data);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadStatus('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      <button
+        onClick={toggleRecording}
+        disabled={isUploading}
+        style={{
+          backgroundColor: isRecording ? 'green' : '#ccc',
+          color: 'white',
+          border: 'none',
+          borderRadius: '50%',
+          width: '60px',
+          height: '60px',
+          fontSize: '24px',
+          cursor: 'pointer',
+        }}
+      >
+        🎤
+      </button>
+
+    </div>
+  );
+};
+
 
 function App() {
 
@@ -103,7 +183,7 @@ function App() {
 
   return (
     <>
-    <div className = "container">
+    <div>
       <button onClick={handleButtonClick}>Generate New Question</button>
 
       <div>
@@ -117,7 +197,7 @@ function App() {
         )}
       </div>
     </div>
-    <div style={{ padding: '20px' }} className = "container">
+    <div style={{ padding: '20px' }}>
       <h3>Enter Text Below:</h3>
       <input
         type="text"
@@ -130,24 +210,6 @@ function App() {
         Check Answer
       </button>
     </div>
-
-    <div className = "container">
-      Talk here instead
-    </div>
-
-    <button className="mic-button" >
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    fill="white"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-  </svg>
-
-</button>
-
     
     {/* Display feedback */}
     {feedback && (
@@ -158,9 +220,7 @@ function App() {
       )}
       <AudioRecorder />
     </>
-    
   );
-  
 }
 
 export default App
