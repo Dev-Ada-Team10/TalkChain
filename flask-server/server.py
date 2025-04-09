@@ -2,6 +2,8 @@ from flask import Flask, send_file, request, jsonify
 import requests
 from flask_cors import CORS
 import os
+import whisper
+import ffmpeg
 
 app = Flask(__name__)
 CORS(app)  # Allow requests from React
@@ -16,6 +18,27 @@ UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Convert webm to wav
+def convert_webm_to_wav():
+    input_path = "uploads/recording.webm"
+    output_path = "uploads/recording.wav"
+    
+    ffmpeg.input(input_path).output(output_path).run(overwrite_output=True)
+
+# Transcribe using Whisper
+def transcribe_audio():
+    model = whisper.load_model("base")
+    result = model.transcribe(r"uploads\recording.wav")
+    return result['text']
+
+# Applying the above two functions to /uploads
+def transcribe_webm_folder():
+            
+        convert_webm_to_wav()
+        text = transcribe_audio()
+            
+        print(text)
 
 @app.route("/languages")
 def languages():
@@ -98,6 +121,8 @@ def upload_audio():
         # Here you can process the audio file as needed
         # For example, convert it, transcribe it, etc.
         
+        transcribe_webm_folder()
+
         return jsonify({
             'message': 'File uploaded successfully',
             'filename': filename,

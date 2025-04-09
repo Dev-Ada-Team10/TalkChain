@@ -76,6 +76,8 @@ const AudioRecorder = () => {
         🎤
       </button>
 
+      <p>Status: {status}</p>
+      {uploadStatus && <p>{uploadStatus}</p>}
     </div>
   );
 };
