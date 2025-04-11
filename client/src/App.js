@@ -1,228 +1,133 @@
-import React, { useState, useEffect } from 'react'
-import _ from 'lodash';
-import { useReactMediaRecorder } from 'react-media-recorder';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useReactMediaRecorder } from 'react-media-recorder';
+import { useEffect } from 'react';
 
-const AudioRecorder = () => {
+
+const ChatMessage = ({ role, message }) => (
+  <div style={{
+    display: 'flex',
+    justifyContent: role === 'user' ? 'flex-end' : 'flex-start',
+    padding: '5px 10px',
+  }}>
+    <div style={{
+      maxWidth: '60%',
+      padding: '10px',
+      borderRadius: '15px',
+      backgroundColor: role === 'user' ? '#DCF8C6' : '#E6E6E6',
+      fontSize: '16px'
+    }}>
+      {message}
+    </div>
+  </div>
+);
+
+const App = () => {
+  const [messages, setMessages] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState('');
 
   const {
     status,
     startRecording,
     stopRecording,
-    mediaBlobUrl,
     clearBlobUrl
-  } = useReactMediaRecorder({ audio: true });
+  } = useReactMediaRecorder({
+    audio: true,
+    onStop: async (blobUrl, blob) => {
+      await handleUpload(blob);
+    }
+  });
 
-  const toggleRecording = async () => {
+  useEffect(() => {
+    console.log('Recording status:', status);
+  }, [status]);
+
+  const toggleRecording = () => {
     if (!isRecording) {
-      setUploadStatus('');
       setIsRecording(true);
+      clearBlobUrl();
       startRecording();
     } else {
       setIsRecording(false);
-      stopRecording();
-      // Wait a moment for mediaBlobUrl to be set
-      setTimeout(handleUpload, 500); 
+      stopRecording(); // onStop will handle the blob
     }
   };
 
-  const handleUpload = async () => {
-    if (!mediaBlobUrl) return;
-
-    setIsUploading(true);
-    setUploadStatus('Uploading...');
-
+  const handleUpload = async (blob) => {
     try {
-      const response = await fetch(mediaBlobUrl);
-      const blob = await response.blob();
-
       const formData = new FormData();
       formData.append('audio', blob, 'recording.webm');
 
-      const res = await axios.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axios.post('/upload', formData);
+      const data = res.data;
 
-      setUploadStatus('Upload successful!');
-      clearBlobUrl(); // Clear recorded audio
-      console.log('Server response:', res.data);
-    } catch (error) {
-      console.error('Upload failed:', error);
-      setUploadStatus('Upload failed');
+      const transcribed = data.transcribed || '[Your voice input]';
+      const feedback = data.feedback || 'No feedback received.';
+
+      setMessages(prev => [...prev, { role: 'user', message: transcribed }]);
+      setMessages(prev => [...prev, { role: 'assistant', message: feedback }]);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        message: '❗ Error processing your audio.'
+      }]);
     } finally {
-      setIsUploading(false);
+      clearBlobUrl();
     }
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <button
-        onClick={toggleRecording}
-        disabled={isUploading}
-        style={{
-          backgroundColor: isRecording ? 'green' : '#ccc',
-          color: 'white',
-          border: 'none',
-          borderRadius: '50%',
-          width: '60px',
-          height: '60px',
-          fontSize: '24px',
-          cursor: 'pointer',
-        }}
-      >
-        🎤
-      </button>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      backgroundColor: '#F5F5F5'
+    }}>
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {messages.length === 0 && (
+          <p style={{ textAlign: 'center', color: '#999' }}>
+            Start speaking to begin chatting...
+          </p>
+        )}
+        {messages.map((msg, index) => (
+          <ChatMessage key={index} role={msg.role} message={msg.message} />
+        ))}
+      </div>
 
-      <p>Status: {status}</p>
-      {uploadStatus && <p>{uploadStatus}</p>}
+      <div style={{
+        padding: '15px',
+        borderTop: '1px solid #ddd',
+        display: 'flex',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+      }}>
+        <button
+          onClick={toggleRecording}
+          style={{
+            backgroundColor: isRecording ? 'red' : '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '70px',
+            height: '70px',
+            fontSize: '30px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+            transition: '0.2s'
+          }}
+        >
+          🎤
+        </button>
+      </div>
     </div>
   );
 };
 
-
-function App() {
-
-  const [data, setData] = useState([{}])
-
-  const [spanish_data, spanish_setData] = useState(null)
-
-  const [question, setQuestion] = useState(null);
-
-  const [inputAnswer, setInputAnswer] = useState('');
-
-  const [feedback, setFeedback] = useState(null);
-
-  // Handler to update the state as the user types
-  const handleInputChange = (e) => {
-    setInputAnswer(e.target.value);
-  };
-
-  const handleButtonClick = async () => {
-    try {
-      const response = await fetch("/generate-question", { method: "GET" });
-      if (response.ok) {
-        const data = await response.json();
-        setQuestion(data.question); // Store only the question
-      } else {
-        console.error("Failed to get question. Status:", response.status);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  // Handler to collect the string when the button is clicked
-  const handleAnswerButtonClick = async () => {
-    if (inputAnswer.trim() === '') {
-      alert('Please enter something first!');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/receive-answer?answer=${encodeURIComponent(inputAnswer)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Server response:', result);
-        setFeedback(result.feedback);  // Store feedback in state
-      } else {
-        console.error('Failed to check answer. Status:', response.status);
-        setFeedback('Failed to check answer. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setFeedback('An error occurred while checking the answer.');
-    }
-
-    setInputAnswer('');  // Clear input
-  };
-  
-
-
-  // function to convert lesson plan json into presentable data
-  const renderData = (data) => {
-
-    // undefined parameter
-    if (data === undefined || data === null) {
-      return <span>No data available</span>;
-    }
-
-    // if data is an array, generate a list of all its contents
-    if (_.isArray(data)) {
-      return (
-        <ul>
-          {data.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-
-    // if data is an object, treat it like a subheading and make a recursive call
-    if (_.isObject(data)) {
-      return (
-        <ul>
-          {_.map(data, (value, key) => (
-            <li key={key}>
-              <strong>{key}:</strong> {renderData(value)}
-            </li>
-          ))}
-        </ul>
-      );
-    }
-
-    // if data is primitive, return it
-    return <span>{data}</span>;
-  };
-
-  return (
-    <>
-    <div>
-      <button onClick={handleButtonClick}>Generate New Question</button>
-
-      <div>
-        {question ? (
-          <div>
-            <h3>Question:</h3>
-            <p>question: {renderData(question)}</p>
-          </div>
-        ) : (
-          <p>No question generated yet.</p>
-        )}
-      </div>
-    </div>
-    <div style={{ padding: '20px' }}>
-      <h3>Enter Text Below:</h3>
-      <input
-        type="text"
-        value={inputAnswer} // Bind input value to state
-        onChange={handleInputChange} // Update state on change
-        placeholder="Type your answer here"
-        style={{ padding: '5px', marginRight: '10px' }}
-      />
-      <button onClick={handleAnswerButtonClick} style={{ padding: '5px 10px' }}>
-        Check Answer
-      </button>
-    </div>
-    
-    {/* Display feedback */}
-    {feedback && (
-        <div style={{ padding: '20px' }}>
-          <h3>Feedback:</h3>
-          <p>{feedback}</p>
-        </div>
-      )}
-      <AudioRecorder />
-    </>
-  );
-}
-
-export default App
+export default App;
