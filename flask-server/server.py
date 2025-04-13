@@ -60,22 +60,37 @@ def upload_audio():
         
         answer = transcribe_webm_folder()
 
-        print("The user replied the following: ", answer)
+        return jsonify({"transcribed": answer})
+    
+@app.route('/response', methods=['POST'])
+def response_from_chatbot():
+    
+    print("checkpoint1")
 
-        jupyter_url = 'http://localhost:5001/trigger-feedback'
-        try:
-            response = requests.post(
-                jupyter_url,
-                json={"answer": answer},
-                headers={'Content-Type': 'application/json'}
-            )
-            feedback = response.json().get("feedback", "No feedback returned!")
+    data = request.get_json()  # get json
 
-            print("The chatbot replied the following: ", feedback)
-            return jsonify({"transcribed": answer, "feedback": feedback})
-        except Exception as e:
-            print(f"Error contacting Jupyter server: {str(e)}")
-            return jsonify({"error": f"Error contacting Jupyter server: {str(e)}"}), 500
+    print("Received JSON:", data)
+    
+    answer = data.get("answer", "")  # extract answer
+
+    print(answer)
+
+    print("The user replied the following: ", answer)
+
+    jupyter_url = 'http://localhost:5001/trigger-feedback'
+    try:
+        response = requests.post(
+            jupyter_url,
+            json={"answer": answer},
+            headers={'Content-Type': 'application/json'}
+        )
+        feedback = response.json().get("feedback", "No feedback returned!")
+
+        print("The chatbot replied the following: ", feedback)
+        return jsonify({"transcribed": answer, "feedback": feedback})
+    except Exception as e:
+        print(f"Error contacting Jupyter server: {str(e)}")
+        return jsonify({"error": f"Error contacting Jupyter server: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

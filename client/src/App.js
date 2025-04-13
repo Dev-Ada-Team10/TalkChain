@@ -25,6 +25,12 @@ const ChatMessage = ({ role, message }) => (
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Pacifico&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }, []);
 
   const {
     status,
@@ -62,9 +68,39 @@ const App = () => {
       const data = res.data;
 
       const transcribed = data.transcribed || '[Your voice input]';
-      const feedback = data.feedback || 'No feedback received.';
-
       setMessages(prev => [...prev, { role: 'user', message: transcribed }]);
+
+      const res_feedback = await axios.post('/response', { answer: transcribed })
+      const feedback_data = res_feedback.data
+      const feedback = feedback_data.feedback || 'No feedback received.';
+
+      // Sanitize feedback: keep letters, accents, punctuation
+      const sanitized = feedback.replace(/[^a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ .,!?'"¿¡\n\r]/g, '');
+
+      // Wait for voices to load
+      const loadVoices = () => new Promise(resolve => {
+        const voices = speechSynthesis.getVoices();
+        if (voices.length) return resolve(voices);
+        speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
+      });
+
+      const voices = await loadVoices();
+      const spanishVoice = voices.find(
+        voice => voice.lang.startsWith("es") && voice.name.toLowerCase().includes("google")
+      );
+
+      // Create and configure utterance
+      const utterance = new SpeechSynthesisUtterance(sanitized);
+      if (spanishVoice) {
+        utterance.voice = spanishVoice;
+      }
+      utterance.pitch = 1;
+      utterance.rate = 1;
+
+      // Clear queue and speak
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+      
       setMessages(prev => [...prev, { role: 'assistant', message: feedback }]);
     } catch (err) {
       console.error('Upload error:', err);
@@ -78,6 +114,20 @@ const App = () => {
   };
 
   return (
+    <>
+    <div style={{
+      padding: '20px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      textAlign: 'center',
+      fontFamily:"'Pacifico', cursive",
+      fontSize: '32px',
+      fontWeight: 'bold',
+      color: '#4CAF50',
+      letterSpacing: '2px'
+    }}>
+      TalkChain 🎙️
+    </div>
     <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -127,6 +177,7 @@ const App = () => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 
